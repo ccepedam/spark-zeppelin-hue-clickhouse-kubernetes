@@ -1,0 +1,42 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name : nginx
+        image: us.gcr.io/analytics-002/nginx-flask:V1
+        imagePullPolicy: "IfNotPresent"
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "2000Mi"
+          requests:
+            cpu: "0.5"
+            memory: "2000Mi"
+        ports:
+          - containerPort: 80
+            protocol: TCP
+          - containerPort: 443
+            protocol: TCP
+          - containerPort: 8888
+            protocol: TCP
+          - containerPort: 5000
+            protocol: TCP
+        command:
+         - "/bin/bash"
+         - "-c"
+         - "--"
+        args: 
+         - '/work/myscripts/launch.sh; python /work/myscripts/FlaskServerRead_ClickHouse.py sleep infinity'

@@ -1,0 +1,53 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clickhouse-deployment
+  labels:
+    app: clickhouse
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name: clickhouse
+      labels:
+        app: clickhouse
+    spec:
+      volumes:
+       - name: data-clickhouse
+         gcePersistentDisk:
+           pdName: data-clickhouse
+           fsType: ext4
+      containers:
+      - name : clickhouse-server
+        image: us.gcr.io/projectName/clickhouse:B1
+        imagePullPolicy: "IfNotPresent"
+        resources:
+          limits:
+            cpu: "7"
+            memory: "26000Mi"
+          requests:
+            cpu: "7"
+            memory: "26000Mi"
+        volumeMounts:
+          - mountPath: /DATA
+            name: data-clickhouse
+        env:
+          - name: CLICKHOUSE_HTTP_PORT
+            value: "8123"
+          - name: CLICKHOUSE_TCP_PORT
+            value: "9000"
+        ports:
+          - containerPort: 8123
+            protocol: TCP
+          - containerPort: 9000
+            protocol: TCP
+          - containerPort: 9009
+            protocol: TCP
+        command:
+         - "/bin/bash"
+         - "-c"
+         - "--"
+        args: 
+         - 'clickhouse-server --config-file=/etc/clickhouse-server/config.xml; sleep infinity'

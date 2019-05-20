@@ -1,0 +1,115 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clickhouse-service
+  labels:
+    app: clickhouse
+spec:
+  type: LoadBalancer
+  selector:
+    app: clickhouse
+  ports:
+    # the port that this service should serve on
+  - name: clickhouse-tcp
+    port: 8123
+    targetPort: 8123
+  - name: clickhouse-http
+    port: 9000
+    targetPort: 9000
+  - name: clickhouse-http-internal
+    port: 9009
+    targetPort: 9009
+    
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-master-service
+  labels:
+    app: spark-master
+spec:
+  type: LoadBalancer
+  selector:
+    app: spark-master
+  ports:
+    # the port that this service should serve on
+  - name: spark-context-webui
+    port: 4040
+    targetPort: 4040
+  - name: python-server
+    port: 5000
+    targetPort: 5000
+  - name: postgresql
+    port: 5432
+    targetPort: 5432
+  - name: zeppelin-webui
+    port: 7000
+    targetPort: 7000
+  - name: spark-master
+    port: 7077
+    targetPort: 7077
+  - name: zeppelin-ssl
+    port: 7443
+    targetPort: 7443
+  - name: spark-master-webui
+    port: 8080
+    targetPort: 8080
+  - name: hue-webui
+    port: 8998
+    targetPort: 8998
+  - name: spark-history
+    port: 18080
+    targetPort: 18080
+    
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-worker-service
+  labels:
+    app: spark-worker
+spec:
+  type: LoadBalancer
+  selector:
+    app: spark-worker
+  ports:
+    # the port that this service should serve on
+  - name: context-worker-webui
+    port: 4041
+    targetPort: 4040
+  - name: spark2
+    port: 7078
+    targetPort: 7078
+  - name: worker-webui
+    port: 8081
+    targetPort: 8081
+    
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  labels:
+    app: nginx
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+    # the port that this service should serve on
+  - name: nginx-http
+    port: 80
+    targetPort: 80
+  - name: nginx-https
+    port: 443
+    targetPort: 443
+  - name: jupyter
+    port: 8888
+    targetPort: 8888
+  - name: nginx-webui
+    port: 5000
+    targetPort: 5000

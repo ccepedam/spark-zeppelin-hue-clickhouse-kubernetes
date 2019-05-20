@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: spark-worker-deployment
+  labels:
+    app: spark-worker
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: spark-worker
+    spec:
+      containers:
+       - name : spark-base
+         image: us.gcr.io/cirruslabs-160319/spark-base:E1
+         imagePullPolicy: "IfNotPresent"
+         resources:
+          limits:
+            cpu: "5"
+            memory: "20000Mi"
+          requests:
+            cpu: "5"
+            memory: "20000Mi"
+         env:
+           - name: SPARK_MASTER_ADDRESS
+             value: spark://spark-master-service:7077
+           - name: SPARK_MASTER_UI_ADDRESS
+             value: http://spark-master-service:8080
+         ports:
+           - containerPort: 4040
+             protocol: TCP
+           - containerPort: 7078
+             protocol: TCP
+           - containerPort: 8081
+             protocol: TCP
+         command:
+          - "/bin/bash"
+          - "-c"
+          - "--"
+         args :
+          - '/usr/local/spark/sbin/start-slave.sh spark://spark-master-service:7077; /usr/local/spark/myscripts/postlaunch.sh; sleep infinity'

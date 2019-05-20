@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-master-service
+  labels:
+    app: spark-master
+spec:
+  type: LoadBalancer
+  selector:
+    app: spark-master
+  ports:
+    # the port that this service should serve on
+  - name: spark-context-webui
+    port: 4040
+    targetPort: 4040
+  - name: python-server
+    port: 5000
+    targetPort: 5000
+  - name: postgresql
+    port: 5432
+    targetPort: 5432
+  - name: zeppelin-webui
+    port: 7000
+    targetPort: 7000
+  - name: spark-master
+    port: 7077
+    targetPort: 7077
+  - name: zeppelin-ssl
+    port: 7443
+    targetPort: 7443
+  - name: spark-master-webui
+    port: 8080
+    targetPort: 8080
+  - name: hue-webui
+    port: 8998
+    targetPort: 8998
+  - name: spark-history
+    port: 18080
+    targetPort: 18080

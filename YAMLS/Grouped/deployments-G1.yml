@@ -1,0 +1,163 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: spark-master-deployment
+  labels:
+    app: spark-master
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name: spark-master
+      labels:
+        app: spark-master
+    spec:
+      volumes:
+       - name: master-disk
+         gcePersistentDisk:
+           pdName: spark-master-disk
+           fsType: ext4
+      containers:
+      - name : spark-zeppelin-livy
+        image: us.gcr.io/projectName/spark-zeppelin-livy-flask:E1
+        imagePullPolicy: "IfNotPresent"
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4000Mi"
+          requests:
+            cpu: "2"
+            memory: "4000Mi"
+        volumeMounts:
+          - mountPath: /SHARED
+            name: master-disk
+        env:
+          - name: SPARK_MASTER_PORT
+            value: "7077"
+          - name: SPARK_MASTER_WEBUI_PORT
+            value: "8080"
+          - name: SPARK_MASTER_ADDRESS
+            value: spark://spark-master-service:7077
+        ports:
+          - containerPort: 4040
+            protocol: TCP
+          - containerPort: 5000
+            protocol: TCP
+          - containerPort: 5432
+            protocol: TCP
+          - containerPort: 6066
+            protocol: TCP
+          - containerPort: 7077
+            protocol: TCP
+          - containerPort: 7000
+            protocol: TCP
+          - containerPort: 7443
+            protocol: TCP
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8081
+            protocol: TCP
+          - containerPort: 8998
+            protocol: TCP
+          - containerPort: 18080
+            protocol: TCP
+        command:
+         - "/bin/bash"
+         - "-c"
+         - "--"
+        args: 
+         - '/usr/local/spark/myscripts/launch.sh; /usr/local/spark/sbin/start-master.sh; /zeppelin/bin/zeppelin-daemon.sh start; /launching/launch.sh; sleep infinity'
+         
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: spark-worker-deployment
+  labels:
+    app: spark-worker
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: spark-worker
+    spec:
+      containers:
+       - name : spark-base
+         image: us.gcr.io/projectName/spark-base:E1
+         imagePullPolicy: "IfNotPresent"
+         resources:
+          limits:
+            cpu: "4"
+            memory: "15000Mi"
+          requests:
+            cpu: "4"
+            memory: "15000Mi"
+         env:
+           - name: SPARK_MASTER_ADDRESS
+             value: spark://spark-master-service:7077
+           - name: SPARK_MASTER_UI_ADDRESS
+             value: http://spark-master-service:8080
+         ports:
+           - containerPort: 4040
+             protocol: TCP
+           - containerPort: 7078
+             protocol: TCP
+           - containerPort: 8081
+             protocol: TCP
+         command:
+          - "/bin/bash"
+          - "-c"
+          - "--"
+         args :
+          - '/usr/local/spark/sbin/start-slave.sh spark://spark-master-service:7077; /usr/local/spark/myscripts/postlaunch.sh; sleep infinity'
+          
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name : nginx
+        image: us.gcr.io/projectName/nginx-flask:V1
+        imagePullPolicy: "IfNotPresent"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2000Mi"
+          requests:
+            cpu: "1"
+            memory: "2000Mi"
+        ports:
+          - containerPort: 80
+            protocol: TCP
+          - containerPort: 443
+            protocol: TCP
+          - containerPort: 8888
+            protocol: TCP
+          - containerPort: 5000
+            protocol: TCP
+        command:
+         - "/bin/bash"
+         - "-c"
+         - "--"
+        args: 
+         - '/work/myscripts/launch.sh; python /work/myscripts/FlaskServerRead_ClickHouse.py sleep infinity'
